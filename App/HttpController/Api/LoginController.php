@@ -25,7 +25,7 @@ class LoginController extends Base
         if(!$user){
             return false;
         }
-        $uniquestr = $this->tokenSave($user);
+        // $uniquestr = $this->tokenSave($user);
         return $this->writeJson(200,['token'=>$uniquestr],'登录成功');
     }
 

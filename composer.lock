@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bfc8370215ed4a15cfeda9e0dbe67bd9",
+    "content-hash": "15f6818d70d8c09edbc02a8ed360000b",
     "packages": [
         {
             "name": "doctrine/lexer",
@@ -986,6 +986,61 @@
                 "swoole"
             ],
             "time": "2020-05-31T13:57:38+00:00"
+        },
+        {
+            "name": "easyswoole/redis",
+            "version": "1.3.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/easy-swoole/redis.git",
+                "reference": "aff6e52afc5ac6cda2373f4ad6a5c77c781451ab"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/easy-swoole/redis/zipball/aff6e52afc5ac6cda2373f4ad6a5c77c781451ab",
+                "reference": "aff6e52afc5ac6cda2373f4ad6a5c77c781451ab",
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://mirrors.aliyun.com/composer/dists/%package%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
+            },
+            "require": {
+                "easyswoole/spl": "^1.2",
+                "ext-swoole": "^4.4.0",
+                "php": ">=7.1.0"
+            },
+            "require-dev": {
+                "easyswoole/phpunit": ">=1.0.0",
+                "easyswoole/swoole-ide-helper": "^1.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "EasySwoole\\Redis\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "YF",
+                    "email": "291323003@qq.com"
+                }
+            ],
+            "description": "easyswoole component",
+            "homepage": "https://www.easyswoole.com/",
+            "keywords": [
+                "async",
+                "easyswoole",
+                "framework",
+                "swoole"
+            ],
+            "time": "2020-12-14T13:10:06+00:00"
         },
         {
             "name": "easyswoole/session",

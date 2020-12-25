@@ -1,7 +1,9 @@
 {
     "require": {
         "easyswoole/easyswoole": "3.x",
-        "easyswoole/orm": "^1.4"
+        "easyswoole/orm": "^1.4",
+        "easyswoole/redis": "^1.3",
+        "easyswoole/task": "^1.1"
     },
     "autoload": {
         "psr-4": {
