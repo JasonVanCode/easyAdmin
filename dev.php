@@ -21,12 +21,17 @@ return [
     'TEMP_DIR' => null,
     'LOG_DIR' => null,
     'MYSQL'  => [
-        'host'          => '192.168.137.97',
+        'host'          => '192.168.137.34',
         'port'          => 3306,
         'user'          => 'root',
         'password'      => 'root',
         'database'      => 'my_project',
         'timeout'       => 5,
         'charset'       => 'utf8mb4',
+    ],
+    'REDIS'  => [
+        'host'          => '127.0.0.1',
+        'port'          => 6379,
+        'auth'          =>'easyswoole'
     ]
 ];

@@ -23,41 +23,30 @@ class LoginController extends Base
         }
         $user = $this->usercheck($params);
         if(!$user){
-            return false;
+            return $this->writeJson(200,[],'该用户不存在');
         }
-        // $uniquestr = $this->tokenSave($user);
+        $uniquestr = $this->tokenSave($user->toArray());
         return $this->writeJson(200,['token'=>$uniquestr],'登录成功');
     }
 
     public function usercheck($params)
     {
         try {
-            $user = User::create()->where([
+            $user = User::create()->limit(1)->get([
                 'username'=>$params['name'],
                 'password'=>$params['password']
-            ])->get(1);
+            ]);
+            return $user;
         } catch (\Exception $e) {
-             $this->writeJson(200,'','数据库连接失败');
              return false;
         }
-        if(!$user){
-            $this->writeJson(200,'','该账户不存在');
-            return false;
-        }
-        return $user;
     }
-
 
     public function tokenSave($user)
     {
-        try{
-            $redis = RedisConnect::getInstance()->connect();
-        }catch(\Exception $e){
-            return $this->writeJson(200,[],'redis连接错误');
-        }
         //生成唯一的32位字符串
         $uniquestr = md5(date('Y-m-d H:i:s').mt_rand(0,1000));
-        $redis->set($uniquestr,json_encode($user),3600);
+        $this->redis->set($uniquestr,json_encode($user),3600);
         return $uniquestr;
     }
 
@@ -112,17 +101,16 @@ class LoginController extends Base
         array_multisort($timeKey, SORT_ASC, $dataArr);//排序，根据$status 排序
         return $dataArr;
     }
-
-
+    
     public function loginOut()
     {
         try{
-            $redis = RedisConnect::getInstance()->connect();
-            $redis->del($this->token);
+            $this->redis->del($this->token);
             return $this->writeJson(200,null,'退出成功');
         }catch(\Exception $e){
             return $this->writeJson(500,null,'redis连接失败');
         }
     }
+
 
 }

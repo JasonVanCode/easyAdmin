@@ -6,6 +6,7 @@ use App\Lib\RedisConnect;
 use App\Models\AdminLog;
 use App\Event\Event;
 
+
 class Base extends Controller
 {
 
@@ -13,14 +14,19 @@ class Base extends Controller
 
     protected $token;
 
+    protected $redis;
+
     protected function onRequest(?string $action): ?bool
     {
-        // Event::getInstance()->hook('test');
-        return true;
+        //登录不需要验证
+        $this->redis = RedisConnect::getInstance()->redis;
         if($action == 'login'){
-            return true;
             $server_list = $this->request()->getServerParams();
             return $this->loginLog($server_list);
+        }
+        //退出也不需要验证
+        if($action == 'loginOut'){
+            return true;
         }
         //下面就是验证用户是否登录
         $token = $this->request()->getHeader('authorization');
@@ -28,13 +34,13 @@ class Base extends Controller
             $this->response()->withStatus(401);
             return false;
         }
-        $obj = RedisConnect::getInstance()->connect();
-        if(!$obj->get($token[0])){
+        $userrinfo = $this->redis->get($token[0]);
+        if(!$userrinfo){
             $this->response()->withStatus(401);
             return false;
         }
         $this->token = $token[0];
-        $this->userinfo = json_decode($obj->get($token[0]),true);
+        $this->userinfo = json_decode($userrinfo,true);
         return true;
     }
 
@@ -51,6 +57,8 @@ class Base extends Controller
             ])->save();
         return $res?true:false;
     }
+
+
 
 
 }

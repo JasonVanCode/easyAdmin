@@ -9,31 +9,16 @@
 namespace EasySwoole\EasySwoole;
 
 
-use Co\Scheduler;
-use EasySwoole\Component\Di;
-use EasySwoole\Component\Process\Exception;
-use EasySwoole\Component\TableManager;
-use EasySwoole\EasySwoole\Http\Dispatcher;
+
 use EasySwoole\EasySwoole\Swoole\EventRegister;
 use EasySwoole\EasySwoole\AbstractInterface\Event;
-use EasySwoole\FastCache\Cache;
-use EasySwoole\FastCache\Exception\RuntimeError;
-use EasySwoole\Http\AbstractInterface\AbstractRouter;
-use EasySwoole\Http\Message\Status;
 use EasySwoole\Http\Request;
 use EasySwoole\Http\Response;
-use EasySwoole\FastCache\CacheProcessConfig;
-use EasySwoole\FastCache\SyncData;
 use EasySwoole\ORM\Db\Connection;
 use EasySwoole\ORM\DbManager;
-use EasySwoole\Spl\SplArray;
-use EasySwoole\Utility\File;
-use Siam\Plugs\common\PlugsContain;
-use Siam\Plugs\common\utils\PlugsHook;
-use Siam\Plugs\PlugsInitialization;
-use Swoole\Table;
-use EasySwoole\Component\Process\Manager;
-use App\Process\WebSocketProcess;
+use App\Lib\RedisConnect;
+use EasySwoole\Http\Message\Status;
+
 
 class EasySwooleEvent implements Event
 {
@@ -45,10 +30,34 @@ class EasySwooleEvent implements Event
         $configData = Config::getInstance()->getConf('MYSQL');
         $config = new \EasySwoole\ORM\Db\Config($configData);
         DbManager::getInstance()->addConnection(new Connection($config));
+        //初始化redis的连接
+        RedisConnect::getInstance()->connect();
 
-        \App\Event\Event::getInstance()->set('test', function () {
-            echo 'test event';
+        \EasySwoole\Component\Di::getInstance()->set(\EasySwoole\EasySwoole\SysConst::HTTP_GLOBAL_ON_REQUEST, function (\EasySwoole\Http\Request $request, \EasySwoole\Http\Response $response): bool {
+            $allow_origin = array(
+                "http://localhost:8888"
+            );
+            $origin = $request->getHeader('origin');
+            if ($origin !== []){
+                $origin = $origin[0];
+                if(empty($allow_origin) || in_array($origin, $allow_origin)){
+                    $response->withHeader('Access-Control-Allow-Origin', $origin);
+                    $response->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+                    $response->withHeader('Access-Control-Allow-Credentials', 'true');
+                    $response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, token');
+                    if ($request->getMethod() === 'OPTIONS') {
+                        $response->withStatus(Status::CODE_OK);
+                        return false;
+                    }
+                }
+            }
+            $response->withHeader('Content-type', 'application/json;charset=utf-8');
+            return true;
         });
+
+        // \App\Event\Event::getInstance()->set('test', function () {
+        //     echo 'test event';
+        // });
 
         // // 插件Basic初始化
         // TableManager::getInstance()->add("plugs_status", [
@@ -67,21 +76,9 @@ class EasySwooleEvent implements Event
         // });
     }
 
-    
+
     public static function mainServerCreate(EventRegister $register)
     {
-        // $processConfig= new \EasySwoole\Component\Process\Config();
-        // $processConfig->setProcessName('WebSocket');//设置进程名称
-        // $processConfig->setArg(['a'=>123]);//传参
-        // $processConfig->setRedirectStdinStdout(false);//是否重定向标准io
-        // $processConfig->setPipeType($processConfig::PIPE_TYPE_SOCK_DGRAM);//设置管道类型
-        // $processConfig->setEnableCoroutine(true);//是否自动开启协程
-        // $processConfig->setMaxExitWaitTime(3);//最大退出等待时间
-        // Manager::getInstance()->addProcess(new WebSocketProcess($processConfig));
-
-
-
-
         // ***************** 注册fast-cache *****************
         // 每隔5秒将数据存回文件
         // try {
@@ -143,42 +140,11 @@ class EasySwooleEvent implements Event
         //     echo "[Warn] --> fast-cache注册失败\n";
         // }
 
-
-
     }
 
     public static function onRequest(Request $request, Response $response): bool
     {
-        $allow_origin = array(
-            // "http://www.siammm.cn",
-            // 为了安全，应该配置指定域名才允许跨域
-        );
-
-        $origin = $request->getHeader('origin');
-
-        if ($origin !== []){
-            $origin = $origin[0];
-            if(empty($allow_origin) || in_array($origin, $allow_origin)){
-                $response->withHeader('Access-Control-Allow-Origin', $origin);
-                $response->withHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-                $response->withHeader('Access-Control-Allow-Credentials', 'true');
-                $response->withHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, token');
-                if ($request->getMethod() === 'OPTIONS') {
-                    $response->withStatus(Status::CODE_OK);
-                    return false;
-                }
-            }
-        }
-
-        $response->withHeader('Content-type', 'application/json;charset=utf-8');
-
-        // try {
-        //     PlugsHook::getInstance()->hook('ON_REQUEST', $request, $response);
-        // } catch (\Throwable $e) {
-        //     echo $e->getMessage()."\n";
-        //     return false;
-        // }
-
+      
         return true;
     }
 
