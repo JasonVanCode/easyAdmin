@@ -4,10 +4,11 @@ namespace App\HttpController\Api;
 use App\Models\AdminUser as User;
 use App\HttpController\Base;
 use App\Lib\ValidateCheck;
-use App\Lib\RedisConnect;
 use App\Models\AdminRole;
 use EasySwoole\Mysqli\QueryBuilder;
 use EasySwoole\ORM\DbManager;
+use EasySwoole\EasySwoole\Task\TaskManager;
+use App\Task\LoginRecord;
 
 class LoginController extends Base
 {
@@ -25,7 +26,10 @@ class LoginController extends Base
         if(!$user){
             return $this->writeJson(200,[],'该用户不存在');
         }
-        $uniquestr = $this->tokenSave($user->toArray());
+        $userdata = $user->toArray();
+        $uniquestr = $this->tokenSave($userdata);
+        //异步投递任务，处理登录的日志，以及更新用户登录时间
+        TaskManager::getInstance()->async(new LoginRecord($userdata,$this->request()->getServerParams()));
         return $this->writeJson(200,['token'=>$uniquestr],'登录成功');
     }
 
@@ -46,7 +50,7 @@ class LoginController extends Base
     {
         //生成唯一的32位字符串
         $uniquestr = md5(date('Y-m-d H:i:s').mt_rand(0,1000));
-        $this->redis->set($uniquestr,json_encode($user),3600);
+        $this->redis->set($uniquestr,json_encode($user));
         return $uniquestr;
     }
 

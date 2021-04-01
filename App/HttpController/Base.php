@@ -19,13 +19,9 @@ class Base extends Controller
     protected function onRequest(?string $action): ?bool
     {
         //登录不需要验证
-        $this->redis = RedisConnect::getInstance()->redis;
-        if($action == 'login'){
-            $server_list = $this->request()->getServerParams();
-            return $this->loginLog($server_list);
-        }
-        //退出也不需要验证
-        if($action == 'loginOut'){
+        $this->redis = RedisConnect::getInstance()->connect();
+        //退出或者登录不需要下面的验证
+        if($action == 'login' || $action == 'loginOut'){
             return true;
         }
         //下面就是验证用户是否登录
@@ -44,19 +40,7 @@ class Base extends Controller
         return true;
     }
 
-    public function loginLog($server_list)
-    {
-        $res = AdminLog::create()->data([
-            'description'=>'登录操作',
-            'username'=>'admin',
-            'start_time'=>date('Y-m-d H:i:s',$server_list['request_time']),
-            'method'=>$server_list['request_method'],
-            'ip'=>$server_list['remote_addr'],
-            'uri'=>$server_list['request_uri'],
-            'url'=>$server_list['path_info']
-            ])->save();
-        return $res?true:false;
-    }
+
 
 
 

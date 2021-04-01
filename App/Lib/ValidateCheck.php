@@ -22,6 +22,12 @@ Class ValidateCheck{
                 $v->addColumn('role_id','权限')->required('权限不能为空')->notEmpty('权限不能为空');
                 break;
             }
+            case 'blog':{
+                $v->addColumn('name','文章标题')->required('文章标题不能为空')->notEmpty('不能为空');
+                $v->addColumn('type','文章类型')->required('文章类型不能为空')->notEmpty('不能为空');
+                $v->addColumn('content','文章内容')->required('文章内容不能为空')->notEmpty('不能为空');
+                break;
+            }
         }
         return $v;
     }
