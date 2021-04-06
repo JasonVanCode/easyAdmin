@@ -11,7 +11,11 @@ class BlogController extends Base
     public function getlist()
     {
         $params = $this->request()->getRequestParam();
-        var_dump($params);
+        $model = BlogArticles::create()->limit($params['perpage'] * ($params['page'] - 1))->withTotalCount();
+        $list = $model->all(null);
+        $total = $model->lastQueryResult()->getTotalCount();
+        $finalresult = ['current_page'=>$params['page'],'total'=>$total,'data'=>$list];
+        return $this->writeJson(200, $finalresult,'获取数据成功');    
     }
 
 
