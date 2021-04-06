@@ -31,8 +31,9 @@ return [
         'charset'       => 'utf8mb4',
     ],
     'REDIS'  => [
-        'host'          => '127.0.0.1',
+        'host'          => '192.168.8.13',
         'port'          => 6379,
-        'auth'          =>'easyswoole'
+        'auth'          =>'123456',
+        'db'            =>0
     ]
 ];

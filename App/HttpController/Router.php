@@ -39,6 +39,8 @@ class Router extends AbstractRouter
             $collector->post('/loginout', '/Api/LoginController/loginOut');
 
             $collector->get('/test11', '/Index/test');
+            $collector->get('/test22', '/Index/test22');
+
 
             //文章模块
             $collector->post('/blog/save', '/Api/BlogController/save');

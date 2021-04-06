@@ -66,6 +66,19 @@ class EasySwooleEvent implements Event
         //添加message事件
         $register->add($register::onMessage,WsMessageHandle::getInstance()->handle());
 
+          // redis pool 使用请看 redis 章节文档
+  
+        $driver = new \EasySwoole\Queue\Driver\RedisQueue(\App\Lib\RedisConnect::getInstance()->getRedisConfig(), 'easyswoole_queue');
+        \App\Lib\RedisQueue::getInstance( $driver);
+        // //注册自定义进程
+        $processConfig = new \EasySwoole\Component\Process\Config([
+            'processName' => 'RedisQueueProcess', // 设置 进程名称为 TickProcess
+            'processGroup' => 'RedisQueue', // 设置 进程组名称为 Tick
+            'enableCoroutine' => true, // 设置 自定义进程自动开启协程环境
+        ]);
+        $customProcess = (new \App\Process\RedisQueueProcess($processConfig));
+        \EasySwoole\Component\Process\Manager::getInstance()->addProcess($customProcess);
+
     }
 
 }
