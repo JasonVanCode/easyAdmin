@@ -44,6 +44,8 @@ class Router extends AbstractRouter
             //文章模块
             $collector->post('/blog/save', '/Api/BlogController/save');
             $collector->get('/blog/getlist', '/Api/BlogController/getlist');
+            $collector->get('/blog/geteditlist', '/Api/BlogController/geteditlist');
+            $collector->post('/blog/dellist', '/Api/BlogController/dellist');
 
         });
         /*

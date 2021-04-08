@@ -41,7 +41,6 @@ class Index extends Controller
 
     public function onException(\Throwable $throwable): void
     {
-        var_dump(2222);
         var_dump($throwable->getMessage());
     }
 

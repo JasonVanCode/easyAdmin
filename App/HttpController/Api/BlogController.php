@@ -26,11 +26,28 @@ class BlogController extends Base
         $vali = $vali->validateRule('blog');
         $res = $vali->validate($params);
         if(!$res){
-            return $this->writeJson('200','',$vali->getError()->__toString());
+            return $this->writeJson(200,'',$vali->getError()->__toString());
         }
         $savedata = ['user_id'=>$this->userinfo['user_id'],'article_title'=>$params['name'],'article_content'=>$params['content'],'article_date'=>date('Y-m-d H:i:s'),'article_type'=>$params['type']];
         $result = BlogArticles::create()->data($savedata)->save();
-        return $this->writeJson('200','',$result?'success':'fail');
+        return $this->writeJson(200,'',$result?'success':'fail');
+    }
+
+    public function geteditlist()
+    {
+        $params = $this->request()->getRequestParam();
+        if(!isset($params['id']) ){
+            return $this->writeJson(200,'','fail');
+        }
+        $data = BlogArticles::create()->get(['article_id'=>$params['id']]);
+        return $this->writeJson(200,$data,'success');
+    }
+
+    public function dellist()
+    {
+        $params = $this->request()->getRequestParam();
+        $res = BlogArticles::create()->destroy($params['id']);
+        return $this->writeJson(200,['status'=>$res?'success':'fail'],$res?'删除成功':'删除失败');
     }
 
 
