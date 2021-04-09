@@ -29,7 +29,7 @@ class LoginController extends Base
         $userdata = $user->toArray();
         $uniquestr = $this->tokenSave($userdata);
         //异步投递任务，处理登录的日志，以及更新用户登录时间
-        TaskManager::getInstance()->async(new LoginRecord($userdata,$this->request()->getServerParams()));
+        TaskManager::getInstance()->async(new LoginRecord($userdata,$this->request()->getServerParams(),$this->request()->getHeaders()));
         return $this->writeJson(200,['token'=>$uniquestr],'登录成功');
     }
 
@@ -63,13 +63,13 @@ class LoginController extends Base
                 select a.role_id,c.* from admin_user_role as a
                 left join admin_role_permission as b on a.role_id = b.role_id
                 left join admin_permission as c on c.permission_id = b.permission_id
-                where a.user_id = ?
+                where c.status = 1 and a.user_id = ?
                 GROUP BY b.permission_id
                 ORDER BY c.orders", [1]);
 
         $data = DbManager::getInstance()->query($queryBuild, true, 'default');
         if(!$data || !$data->toArray()['result']){
-                return $this->writeJson(500,null,'该账号无权登录');
+            return $this->writeJson(500,null,'该账号无权登录');
         }
         $menulist = $data->toArray()['result'];
         $menuTree = $this->getMenuTree( $menulist , 0);

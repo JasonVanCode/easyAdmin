@@ -12,11 +12,14 @@ class LoginRecord implements TaskInterface
 
     protected $server;
 
-    public function __construct($data,$server)
+    protected $headers;
+
+    public function __construct($data,$server,$headers)
     {
         // 保存投递过来的数据
         $this->data = $data;
         $this->server = $server;
+        $this->headers = $headers;
     }
 
     public function run(int $taskId, int $workerIndex)
@@ -41,12 +44,18 @@ class LoginRecord implements TaskInterface
 
     public function loginLog()
     {
+        //判断是否是nginx 反向代理过来的，获取请求的真实ip地址
+        $real_ip = '';
+        if(isset($this->headers['x-real-ip'][0])){
+            $real_ip = $this->headers['x-real-ip'][0];
+        }
+        
        AdminLog::create()->data([
             'description'=>'登录操作',
             'username'=>$this->data['username'],
             'start_time'=>date('Y-m-d H:i:s',$this->server['request_time']),
             'method'=>$this->server['request_method'],
-            'ip'=>$this->server['remote_addr'],
+            'ip'=>$real_ip?$real_ip:$this->server['remote_addr'],
             'uri'=>$this->server['request_uri'],
             'url'=>$this->server['path_info']
             ])->save();

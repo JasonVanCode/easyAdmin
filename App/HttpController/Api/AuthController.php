@@ -57,7 +57,7 @@ class AuthController extends Base
         $role_id = isset($params['role_id'])?$params['role_id']:null;
         $result = [];
         if($role_id){
-            $result = AdminRolePermission::create()->where(['role_id' => $role_id])->column('permission_id');
+            $result = AdminRolePermission::create()->get(['role_id' => $role_id])->column('permission_id');
         }
         return $this->writeJson(200,$result,'获取数据成功');
    }
