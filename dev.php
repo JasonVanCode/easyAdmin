@@ -36,5 +36,10 @@ return [
         'auth'          =>'123456',
         'db'            =>0,
         'timeout'       =>10000
+    ],
+    //调取阿里api，根据ip地址获取实际地址
+    'IPAPI' => [
+        'app_code'      =>'a17c66063e8b4c1e98d582634a912cd7',
+        'host'          =>'http://api01.aliyun.venuscn.com'
     ]
 ];

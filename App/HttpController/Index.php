@@ -12,23 +12,16 @@ use App\Lib\RedisConnect;
 use EasySwoole\Http\GlobalParam\Hook;
 use EasySwoole\Queue\Job;
 use App\Lib\RedisQueue as MyQueue;
+use App\Lib\GetIPAddress;
 
 class Index extends Controller
 {
 
     public function test()
     {
-        // 创建任务
-        $job = new Job();
-        // 设置任务数据
-        $job->setJobData("this is my job data time time " . date('Ymd h:i:s'));
-        // // $job->setDelayTime(5);
-        //  // 生产普通任务
-        $a =  MyQueue::getInstance()->producer()->push($job);
-        var_dump($a);
-        //  if($produceRes){
-        //     echo 'push success'.PHP_EOL;
-        //  }
+        $ip = '114.86.230.217';
+        $a = new GetIPAddress($ip,'GET');
+        $a->getAddress();
     }
 
 
