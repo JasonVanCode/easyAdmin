@@ -36,7 +36,7 @@ class EasySwooleEvent implements Event
         \EasySwoole\Component\Di::getInstance()->set(\EasySwoole\EasySwoole\SysConst::HTTP_GLOBAL_ON_REQUEST, function (\EasySwoole\Http\Request $request, \EasySwoole\Http\Response $response): bool {
             $allow_origin = array(
                 "http://localhost:8888",
-                "http://192.168.137.34:8888",
+                "http://192.168.137.95:8888",
                 "http://192.168.8.102:8888"
             );
             $origin = $request->getHeader('origin');
