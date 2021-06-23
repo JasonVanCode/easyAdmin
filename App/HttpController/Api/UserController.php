@@ -5,6 +5,7 @@ use App\Models\AdminUser as User;
 use App\HttpController\Base;
 use App\Lib\ValidateCheck;
 use App\Models\AdminUserRole;
+use Throwable;
 
 class UserController extends Base
 {
@@ -29,13 +30,17 @@ class UserController extends Base
         return $this->writeJson(200, $finalresult,'获取数据成功');        
     }
 
+    /**
+     * @description: 创建用户
+     * @param {*}
+     * @return {*}
+     */    
     public function save()
     {
         $file = $this->request()->getUploadedFile('file');
         $form = $this->request()->getRequestParam()['form'];
         // 将json转数组
         $form = json_decode($form,true);
-  
         //判断必填字段是否
         $vali = new ValidateCheck();
         $vali = $vali->validateRule('usersave');
@@ -43,52 +48,106 @@ class UserController extends Base
         if(!$res){
             return $this->writeJson(200,['status'=>'error'],$vali->getError()->__toString());
         }
-        $user_id = $form['user_id'];
         $role_id = $form['role_id'];
+        $user_id = $form['user_id'];
         unset($form['user_id'],$form['role_id']);
-        $head_img = '';
-        if($file){
-            $head_img = $this->savefile($file);
-        }
-        try {
-            $model = AdminUserRole::create();
-            if($user_id){
-                $form['avatar'] = $head_img?$head_img:$form['avatar'];
-                User::create()->update($form,['user_id',$user_id]);
-                $model->destroy(['user_id'=>$user_id]);
-            }else{
-                //添加新建时间
-                $form['ctime'] = date('Y-m-d H:i:s');
-                $user_id = User::create()->data($form,false)->save();
+
+        if(!$user_id){
+            //判断新增的用户名是否存在
+            $is_exists_name = User::create()->get(['username'=>$form['username']]);
+            if($is_exists_name){
+                return $this->writeJson(200,['status'=>'error'],'该用户名已经存在，请修改后重新提交！');
             }
-            foreach($role_id as $v){
-                $savedata[] = ['user_id' => $user_id,'role_id'=>$v];
-            } 
-            $model->saveAll($savedata,false);
-        } catch (\Exception $e) {
-            return $this->writeJson(200,['status'=>'error'],'数据添加失败');
+
+            $user_id = $this->addData($form,$file);
+        }else{
+            $user_id = $this->updateData($form,$file,$user_id);
+        }
+        if(!$user_id){
+            return $this->writeJson(200,['status'=>'error'],'用户创建或修改失败！');
         }
 
-        return $this->writeJson(200,['status'=>'success'],'添加数据成功');
+        //保存用户与权限对应的数据关系
+        foreach($role_id as $v){
+            $savedata[] = ['user_id' => $user_id,'role_id'=>$v];
+        } 
+        $finalresult = AdminUserRole::create()->saveAll($savedata,true);
+        return $this->writeJson(200,['status'=>$finalresult?'success':'error'],$finalresult?'成功':'失败');
     }
 
-
-    public function savefile($file)
+    /**
+     * @description: 处理用户新增的数据
+     * @param {Array} $formdata
+     * @param {Object} $file
+     * @return {*}
+     */    
+    public function addData(Array $form,Object $file)
     {
-        $ext = ['png','jpg','jpeg'];
-        $basedir = EASYSWOOLE_ROOT.'/Public/head/'.date('Y-m').'/';
+        if($file){
+            $form['avatar'] = $this->savefile($file);
+        }
+        //处理用户存储的密码
+        $form['salt'] = $this->generateSalt();
+        $form['password'] = $this->generateHashPassword($form['password'],$form['salt']); 
+        //用户创建时间  
+        $form['ctime'] = date('Y-m-d H:i:s');
+        $user_id = User::create()->data($form,false)->save();
+        return $user_id?$user_id:false;
+    }
+
+    /**
+     * @description: 处理用户更新的数据
+     * @param {Array} $form
+     * @param {Object} $file
+     * @param {*} $user_id
+     * @return {*}
+     */    
+    public function updateData(Array $form,Object $file,$user_id)
+    {
+        if($file){
+            $form['avatar'] = $this->savefile($file);
+        }else{
+            unset($form['avatar']);
+        }
+        try{
+            // 开启事务
+            \EasySwoole\ORM\DbManager::getInstance()->startTransaction();
+            User::create()->update($form,['user_id',$user_id]);
+            AdminUserRole::create()->destroy(['user_id'=>$user_id]);
+            // 提交事务
+            \EasySwoole\ORM\DbManager::getInstance()->commit();
+            return $user_id;
+        }catch(Throwable $e){
+            // 回滚事务
+            \EasySwoole\ORM\DbManager::getInstance()->rollback();
+            return false;
+        }
+    }
+
+    /**
+     * @description: 处理图片上传 
+     * @param {Object} $file
+     * @return {*}
+     */    
+    public function savefile(Object $file)
+    {
+        $head_config = \EasySwoole\EasySwoole\Config::getInstance()->getConf('HEAD_IMAGE_DIR');
         // //判断该文件夹是否存在
-        if(!file_exists($basedir)){
-            mkdir ($basedir,0777,true);
+        if(!file_exists($head_config['save_dir'])){
+            mkdir ($head_config['save_dir'],0777,true);
         }
         $mediatype =  $file->getClientMediaType();
         $suffix = explode('/',$mediatype)[1];
-        if(!in_array($suffix,$ext)){
+        if(!in_array($suffix,$head_config['ext'])){
             return '';
         }
         $newname = md5(time() . mt_rand(1,1000000)).'.'.$suffix;
-        $res = $file->moveTo($basedir . $newname);
-        return $res?$basedir . $newname:'';
+        try{
+            $file->moveTo($head_config['save_dir'] . $newname);
+        }catch(\EasySwoole\Http\Exception\FileException $e){
+            return '';
+        }
+        return $head_config['show_dir'].$newname;
     }
 
     public function del()
@@ -99,10 +158,38 @@ class UserController extends Base
             if($id){
                 User::create()->destroy($id);
             }
-        } catch (\Exception $e) {
-            return $this->writeJson(200,['status'=>'error'],'删除失败');
+        } catch (\Throwable $e) {
+            return $this->writeJson(200,['status'=>'error'],$e->getMessage());
         }
         return $this->writeJson(200,['status'=>'success'],'删除成功');
+    }
+
+    /**
+     * @description: 随机生成4位的盐值
+     * @param {*}
+     * @return {*}
+     */
+    //盐值生成
+    public function generateSalt():string
+    {
+        $str = '';
+        // 使用随机方式生成一个四位字符
+        $chars = array_merge(range('A', 'Z'), range('a', 'z'), range('0', '9'));
+        for ($i = 0; $i < 4; $i++) {
+            $str .= $chars[mt_rand(0, count($chars) - 1)];
+        }
+        return $str;
+    }
+
+    /**
+     * @description: 对用户的密码进行加密处理
+     * @param {*} $password
+     * @param {*} $salt
+     * @return {*}
+     */    
+    public function generateHashPassword(String $password, String $salt):string
+    {
+        return md5(sha1($password) . $salt);
     }
 
 

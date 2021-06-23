@@ -1,4 +1,12 @@
 <?php
+/*
+ * @Author: your name
+ * @Date: 2020-12-24 06:07:39
+ * @LastEditTime: 2021-06-22 08:22:37
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: /opt/easyAdmin/dev.php
+ */
 return [
     'SERVER_NAME' => "EasySwoole",
     'MAIN_SERVER' => [
@@ -31,7 +39,7 @@ return [
         'charset'       => 'utf8mb4',
     ],
     'REDIS'  => [
-        'host'          => '192.168.8.13',
+        'host'          => '127.0.0.1',
         'port'          => 6379,
         'auth'          =>'123456',
         'db'            =>0,
@@ -41,5 +49,10 @@ return [
     'IPAPI' => [
         'app_code'      =>'a17c66063e8b4c1e98d582634a912cd7',
         'host'          =>'http://api01.aliyun.venuscn.com'
+    ],
+    'HEAD_IMAGE_DIR' => [
+        'save_dir'=>EASYSWOOLE_ROOT.'/Public/head/'.date('Y-m').'/',
+        'show_dir'=>'head/'.date('Y-m').'/',
+        'ext'=>['png','jpg','jpeg']
     ]
 ];

@@ -30,20 +30,26 @@ class LoginController extends Base
         $uniquestr = $this->tokenSave($userdata);
         //异步投递任务，处理登录的日志，以及更新用户登录时间
         TaskManager::getInstance()->async(new LoginRecord($userdata,$this->request()->getServerParams(),$this->request()->getHeaders()));
-        return $this->writeJson(200,['token'=>$uniquestr],'登录成功');
+        return $this->writeJson(200,['token'=>$uniquestr,'last_logintime'=>date('Y-m-d H:i:s')],'登录成功');
     }
 
     public function usercheck($params)
     {
         try {
             $user = User::create()->limit(1)->get([
-                'username'=>$params['name'],
-                'password'=>$params['password']
+                'username'=>$params['name']
+                // 'password'=>$params['password']
             ]);
             return $user;
         } catch (\Exception $e) {
              return false;
         }
+        //
+
+
+
+
+
     }
 
     public function tokenSave($user)
