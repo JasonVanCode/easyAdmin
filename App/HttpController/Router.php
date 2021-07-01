@@ -46,6 +46,12 @@ class Router extends AbstractRouter
             $collector->get('/blog/getlist', '/Api/BlogController/getlist');
             $collector->get('/blog/geteditlist', '/Api/BlogController/geteditlist');
             $collector->post('/blog/dellist', '/Api/BlogController/dellist');
+            $collector->post('/blog/blogimgsave', '/Api/BlogController/blogimgsave');
+
+            //websocket在线聊天模块
+            $collector->get('/chat/get_chat_userlist', '/Api/OnlineChatController/get_chat_userlist');
+
+
 
         });
         /*

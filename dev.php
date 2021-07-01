@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2020-12-24 06:07:39
- * @LastEditTime: 2021-06-22 08:22:37
+ * @LastEditTime: 2021-06-23 02:56:12
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /opt/easyAdmin/dev.php
@@ -51,8 +51,14 @@ return [
         'host'          =>'http://api01.aliyun.venuscn.com'
     ],
     'HEAD_IMAGE_DIR' => [
-        'save_dir'=>EASYSWOOLE_ROOT.'/Public/head/'.date('Y-m').'/',
-        'show_dir'=>'head/'.date('Y-m').'/',
+        'save_dir'=>'/opt/my-images/headimgs/'.date('Y-m').'/',
+        'show_dir'=>'headimgs/'.date('Y-m').'/',
+        'ext'=>['png','jpg','jpeg']
+    ],
+    'BLOG_IMAGE_DIR' => [
+        'save_dir'=>'/opt/my-images/blogimg/'.date('Y-m').'/',
+        'show_dir'=>'blogimg/'.date('Y-m').'/',
         'ext'=>['png','jpg','jpeg']
     ]
+
 ];

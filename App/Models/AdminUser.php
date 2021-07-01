@@ -21,7 +21,7 @@ class AdminUser extends AbstractModel{
         $user_list = self::create()->all();
         $result_data = [];
         foreach( $user_list as $val){
-            $result_data[] = ['id'=>$val->user_id,'username'=>$val->username,'avatar'=>$val->avatar];
+            $result_data[$val->user_id] = ['id'=>$val->user_id,'name'=>$val->username,'imageUrl'=>$val->avatar];
         }
         return $result_data;
      }

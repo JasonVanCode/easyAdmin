@@ -18,7 +18,7 @@ use EasySwoole\Http\Message\Status;
 use EasySwoole\Log\LoggerInterface;
 use EasySwoole\EasySwoole\Logger;
 use EasySwoole\EasySwoole\Task\TaskManager;
-use App\Lib\WsMessageHandle;
+use App\Lib\WsHandle;
 use App\Lib\WorkerStartHandle;
 use App\Lib\RedisConnect;
 use EasySwoole\Component\TableManager;
@@ -65,17 +65,16 @@ class EasySwooleEvent implements Event
         //添加swoole\table 共享内存，提供各进程访问
         TableManager::getInstance()->add('websocket_user',
         [
-            'worker_id'=>['type'=>\Swoole\Table::TYPE_INT,'size'=>10],
-            'fd'=>['type'=>\Swoole\Table::TYPE_INT,'size'=>10],
+            'user_fds'=>['type'=>\Swoole\Table::TYPE_STRING,'size'=>1024],
         ],
         1024);
-
         //添加workerstart事件
-        // $register->add($register::onWorkerStart,WorkerStartHandle::getInstance()->handle());
+        $register->add($register::onWorkerStart,WorkerStartHandle::getInstance()->handle());
         //添加message事件
-        $register->add($register::onMessage,WsMessageHandle::getInstance()->handle());
+        $register->add($register::onMessage,WsHandle::getInstance()->handle());
         //添加close事件
-        // $register->add($register::onClose,WsMessageHandle::getInstance()->handleClose());
+        $register->add($register::onClose,WsHandle::getInstance()->handleClose());
+        
 
           // redis pool 使用请看 redis 章节文档
   

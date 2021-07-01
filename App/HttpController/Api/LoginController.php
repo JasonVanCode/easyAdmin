@@ -15,6 +15,7 @@ class LoginController extends Base
     public function login()
     { 
         $params = $this->request()->getRequestParam();
+
         //请求字段判断
         $vali = new ValidateCheck();
         $vali = $vali->validateRule('login');
@@ -23,33 +24,38 @@ class LoginController extends Base
             return $this->writeJson('200','',$vali->getError()->__toString());
         }
         $user = $this->usercheck($params);
-        if(!$user){
-            return $this->writeJson(200,[],'该用户不存在');
+        if(isset($user['result'])){
+            return $this->writeJson(200,[],$user['msg']);
         }
-        $userdata = $user->toArray();
-        $uniquestr = $this->tokenSave($userdata);
+        $uniquestr = $this->tokenSave($user);
         //异步投递任务，处理登录的日志，以及更新用户登录时间
-        TaskManager::getInstance()->async(new LoginRecord($userdata,$this->request()->getServerParams(),$this->request()->getHeaders()));
-        return $this->writeJson(200,['token'=>$uniquestr,'last_logintime'=>date('Y-m-d H:i:s')],'登录成功');
+        TaskManager::getInstance()->async(new LoginRecord($user,$this->request()->getServerParams(),$this->request()->getHeaders()));
+        return $this->writeJson(200,['token'=>$uniquestr,'last_logintime'=>$user['last_login_time'],'avatar'=>$user['avatar'],'user_id'=>$user['user_id']],'登录成功');
     }
 
-    public function usercheck($params)
+    /**
+     * @description: 校验登录用户的用户名和密码
+     * @param {*} $params
+     * @return {*}
+     */    
+    public function usercheck($params):array
     {
         try {
             $user = User::create()->limit(1)->get([
                 'username'=>$params['name']
-                // 'password'=>$params['password']
             ]);
-            return $user;
         } catch (\Exception $e) {
-             return false;
+            return ['result'=>false,'msg'=>$e->getMessage()];;
         }
-        //
-
-
-
-
-
+        if(!$user){
+            return ['result'=>false,'msg'=>'该用户不存在'];
+        }
+        $salt = $user->salt;
+        $check_password = generate_hash_password($params['password'],$salt);
+        if($check_password != $user->password){
+            return ['result'=>false,'msg'=>'密码错误'];
+        }
+        return $user->toArray();
     }
 
     public function tokenSave($user)
